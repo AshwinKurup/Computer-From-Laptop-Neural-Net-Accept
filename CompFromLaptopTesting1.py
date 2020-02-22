@@ -1,6 +1,8 @@
 # todo pull a file from github and run it here
 import urllib.request
-import LaptopToComp
+
+#TODO unless I make it exist already, remove that folder and then replace it with the git clone (which itself will be removed after single use) 
+
 import send2trash
 import time
 from github import Github
@@ -8,33 +10,67 @@ import base64
 import pygit2
 import shutil
 import os
-# codeshare.com also can
-# TODO all the RSNA stuff should actually be kept in either FDrive or the cloud. If inaccessible from Fdrive, use the cloud.
-# TODO all the RSNA data should be in here
-
-# or can use jupyter
-# pretty sure this whole thing can just be done on jupyter
-# just write the code here then copy paste.
-# don't run the exact same file on the comp, it will be an imported module within the same folder,
-# ... then there should be another file running in jupyter on the com periodically calling the one made by laptop
-# then can catch the errors that come when the file from the laptop doesn't exist yet
 
 # TODO shove all of this inside a while loop that has a try except thing for when the module from the laptop isn't there
 
+is_L2C_imported = False
 
-
-g = Github("AshwinKurup", "1Ashwin_Kurup1")
-
-
-
-
-
-
-
-
+''' 
+this is increased by 1 everytime the laptop file is cloned in. 
+it will be used to add to the last number in the Counter file present in this directory
+'''
+counterFile = open("Counter.txt", "r+")
+counter = int(counterFile.readlines()[-1]) # start from the last number in the counter file
 
 
 
+def generateNewRepoName():
+    global counter
+    ''' 
+    :return: returns a path string of the new repo name. also returns the path of test1.py, the neural net file from laptop
+    '''
+    LaptopCodeDirectory = 'C:\\Users\\Ashok\\Documents\\GitHub\\CompFromLaptop\\LAPTOPCODE' + str(counter)
+    NNPyFile = LaptopCodeDirectory + '\\test1.py'
+    return LaptopCodeDirectory, NNPyFile
+
+
+def cloneLaptopToCompRepoAndCopyMainPyFile():
+    g = Github("AshwinKurup", "1Ashwin_Kurup1")
+    repo = g.get_user().get_repo("LaptopToComp")
+    try:
+        repoClone = pygit2.clone_repository(repo.git_url, generateNewRepoName()[0])  # this creates a repo, btw
+        print(repoClone, "THis is the repoclone path")
+        copyFileToMainDirectory()
+    except ValueError:
+        print("the previous repo has not yet been deleted")
+
+def copyFileToMainDirectory():
+    try:
+        newPath = shutil.copy(generateNewRepoName()[1],
+                           'C:\\Users\\Ashok\\Documents\\GitHub\\CompFromLaptop\\CompFromLaptop')
+    except OSError:
+        print("the file can't be copied yet cos the directory has not been cloned")
+print("delete this now lol just this printline")
+print("delete this now lol just this printline")
+print("delete this now lol just this printline")
+print("delete this now lol just this printline")
+while True:
+    cloneLaptopToCompRepoAndCopyMainPyFile() # after this can delete the directory already, cos all I need is the py file
+    try:
+        import test1 # the file containing Neural Net
+    except ImportError:
+        print("LaptopToComp repository has not been cloned yet")
+    print(test1.booleanSwitch()) # okay then this can be used as the switch. Unless this is set to false, the prog keeps running.
+    print("ONE CYCLE DONE")
+    counter +=1 # this represents the number of LAPTOPCODE files that have already been cloned in
+    counterFile.write(str(counter) + "\n")
+    ''' this increases the number in the Counter file. 
+        therefore when the program ends, and a new one starts, the last number corresponding to the last
+        LAPTOPCODE file cloned in during the last the the program ran will be added to and then used to create the next
+        LAPTOPCODE file. I don't want the counter to start again from zero because there'd already be a file called
+        LAPTOPCODE0, therefore will have an error cloning if the file already exists
+    ''' 
+    counterFile.truncate() # TODO find out why need truncate
 
 
 
@@ -49,31 +85,4 @@ g = Github("AshwinKurup", "1Ashwin_Kurup1")
 
 
 
-# TODO the credentials expired for some reason- probably cos i shoved it back onto github
 
-
-
-
-
-
-
-print(g.get_user())
-repo = g.get_user().get_repo("LaptopToComp")
-file_content = repo.get_contents('test1.py')
-file_data = base64.b64decode(file_content.content)
-print(file_data)
-#f= open("LaptopCode.py","w+")
-#f.write(file_data)
-
-
-#repoClone = pygit2.clone_repository(repo.git_url, 'C:\\Users\\Ashok\\Documents\\GitHub\\CompFromLaptop\\LAPTOPCODE') # this creates a repo, btw
-
-
-
-# TODO if dk how to use the a python file from a different directory, just copy it over to this one lol
-# newPath = shutil.copy('C:\\Users\\Kurup\Miniconda3\\Lib\\site-packages\\vizdoom\\examples\\ClonedRepo\\test1.py',
-#                       'C:\\Users\\Kurup\Miniconda3\\Lib\\site-packages\\vizdoom\\examples\\CompFromLaptop')
-# today use this for MNIST
-# TODO IF IF IF IF IF I am unable to remove the current directory, is cool, make a dict with a million names generated by a list, then assign a new one to the repo each time.
-send2trash.send2trash('C:\\Users\\Ashok\\Documents\\GitHub\\CompFromLaptop\\LAPTOPCODE')
-# THIS WORKS
